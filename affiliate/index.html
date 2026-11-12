@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Ren's picks</title>
+<meta name="description" content="Wellness, desk, planner and beauty finds Ren uses, for Malaysia and the UAE.">
+<meta name="theme-color" content="#FAF6F1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;500;600&display=swap">
+<style>
+:root{--bg:#FAF6F1;--surface:#FFFFFF;--ink:#2A1E2C;--muted:#6B5F68;--line:#EADFD6;--plum:#5E2750;--plum-soft:#F4ECF1;--gold:#C2903A;--gold-soft:#FBF3E4;color-scheme:light}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Inter,system-ui,-apple-system,sans-serif}
+.wrap{max-width:640px;margin:0 auto;padding:calc(20px + env(safe-area-inset-top,0px)) 16px calc(40px + env(safe-area-inset-bottom,0px))}
+h1{font-family:Fraunces,Georgia,serif;font-weight:600;color:var(--plum);font-size:32px;line-height:1.15;margin:4px 0 6px}
+.eyebrow{font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);font-weight:600}
+.lede{color:var(--muted);margin:0 0 16px}
+.disclosure{background:var(--gold-soft);border:1px solid #EBD9B4;border-radius:12px;padding:12px 14px;font-size:15px;margin-bottom:18px}
+.tabs{display:flex;gap:6px;background:var(--plum-soft);padding:4px;border-radius:12px;margin-bottom:16px}
+.tabs button{flex:1;min-height:44px;border:0;border-radius:9px;background:transparent;font:600 15px Inter,sans-serif;color:var(--plum);cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--plum);color:#fff}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.chips button{min-height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font:500 14px Inter,sans-serif;color:var(--ink);cursor:pointer}
+.chips button[aria-pressed="true"]{border-color:var(--plum);color:var(--plum);background:var(--plum-soft)}
+.list{display:flex;flex-direction:column;gap:10px;list-style:none;margin:0;padding:0}
+.item a{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:14px;text-decoration:none;color:var(--ink);min-height:56px}
+.item a:hover,.item a:focus-visible{border-color:var(--plum)}
+.item .name{font-weight:600}
+.item .cat{font-size:14px;color:var(--muted)}
+.item .go{flex:0 0 auto;font-size:14px;font-weight:600;color:var(--plum);white-space:nowrap}
+.empty{padding:16px;border:1px dashed var(--line);border-radius:14px;color:var(--muted);font-size:15px}
+:focus-visible{outline:2px solid var(--plum);outline-offset:2px}
+footer{margin-top:28px;font-size:14px;color:var(--muted)}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="eyebrow">ORIRI · Ren's picks</div>
+  <h1>Things I actually use</h1>
+  <p class="lede">Wellness, desk set-up, planners and beauty. Pick your country to shop locally.</p>
+  <p class="disclosure"><strong>Disclosure:</strong> Some links are affiliate links; I may earn a small commission at no extra cost to you. Prices change, so check them on the shop's page.</p>
+
+  <div class="tabs" role="tablist" aria-label="Country">
+    <button type="button" role="tab" id="tab-MY" aria-selected="true" data-market="MY">Malaysia · Shopee</button>
+    <button type="button" role="tab" id="tab-UAE" aria-selected="false" data-market="UAE">UAE · Amazon.ae</button>
+  </div>
+  <div class="chips" id="chips" aria-label="Category"></div>
+  <ul class="list" id="list" aria-live="polite"></ul>
+
+  <footer>Picks are updated as I share them in my posts. <a href="https://oriri.me" style="color:var(--plum)">oriri.me</a></footer>
+</main>
+<script>
+(function(){
+  const CATS=["All","Wellness","Desk","Planner","Beauty"];
+  const state={market:"MY",cat:"All",rows:[]};
+  const params=new URLSearchParams(location.search);
+  if((params.get("market")||"").toUpperCase()==="UAE")state.market="UAE";
+
+  function parseCSV(text){
+    const rows=[];let row=[],cell="",q=false;
+    for(let i=0;i<text.length;i++){const c=text[i];
+      if(q){if(c==='"'){if(text[i+1]==='"'){cell+='"';i++;}else q=false;}else cell+=c;}
+      else if(c==='"')q=true;else if(c===','){row.push(cell);cell="";}
+      else if(c==='\n'||c==='\r'){if(c==='\r'&&text[i+1]==='\n')i++;row.push(cell);rows.push(row);row=[];cell="";}
+      else cell+=c;}
+    if(cell||row.length){row.push(cell);rows.push(row);}
+    const head=rows.shift().map(h=>h.trim());
+    return rows.filter(r=>r.some(x=>x.trim())).map(r=>Object.fromEntries(head.map((h,i)=>[h,(r[i]||"").trim()])));
+  }
+  const safeUrl=u=>/^https:\/\//i.test(u)?u:null;
+
+  function render(){
+    document.querySelectorAll(".tabs button").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.market===state.market)));
+    const chips=document.getElementById("chips");chips.textContent="";
+    CATS.forEach(c=>{const b=document.createElement("button");b.type="button";b.textContent=c;b.setAttribute("aria-pressed",String(c===state.cat));b.onclick=()=>{state.cat=c;render();};chips.append(b);});
+    const list=document.getElementById("list");list.textContent="";
+    const items=state.rows.filter(r=>r.active.toLowerCase()==="yes"&&r.market.toUpperCase()===state.market&&safeUrl(r.affiliate_url)&&(state.cat==="All"||r.category===state.cat));
+    if(!items.length){const li=document.createElement("li");li.className="empty";li.textContent="New picks for this list are coming soon.";list.append(li);return;}
+    items.forEach(r=>{
+      const li=document.createElement("li");li.className="item";
+      const a=document.createElement("a");a.href=safeUrl(r.affiliate_url);a.target="_blank";a.rel="sponsored noopener";
+      const t=document.createElement("span");const n=document.createElement("div");n.className="name";n.textContent=r.product;
+      const c=document.createElement("div");c.className="cat";c.textContent=r.category;t.append(n,c);
+      const g=document.createElement("span");g.className="go";g.textContent=(r.platform.startsWith("Amazon")?"View on Amazon":"View on Shopee")+" ›";
+      a.append(t,g);li.append(a);list.append(li);
+    });
+  }
+  document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{state.market=b.dataset.market;render();});
+  fetch("links.csv",{cache:"no-store"}).then(r=>r.text()).then(t=>{state.rows=parseCSV(t);render();}).catch(()=>render());
+  render();
+})();
+</script>
+</body>
+</html>
